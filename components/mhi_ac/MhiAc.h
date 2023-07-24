@@ -218,6 +218,49 @@ public:
 				}
 			}
 			break;
+		case opdata_iu_fanspeed:
+		case erropdata_iu_fanspeed:
+			// TODO: indoor fan speed sensor, unit same as what you can set
+		case opdata_ou_fanspeed:
+		case erropdata_ou_fanspeed:
+			// TODO: outdoor fan speed sensor, unit ???
+		case opdata_defrost:
+			// TODO: defrost binary sensor
+		case opdata_total_comp_run:
+		case erropdata_total_comp_run:
+			// TODO: compressor run time sensor, (value * 100), unit ???
+		case opdata_protection_no:
+			// TODO: protection state text sensor
+		case opdata_comp:
+		case erropdata_comp:
+			// TODO: compressor frequency sensor
+		case opdata_return_air:
+		case erropdata_return_air:
+			// TODO: return ait temp sensor, (value * 0.25f - 15), unit °C ?
+		case opdata_total_iu_run:
+		case erropdata_total_iu_run:
+			// TODO: indoor unit run time, (value * 100), unit ???
+		case opdata_tdsh:
+			// outdoor unit discharge pipe super heat ???
+		case opdata_td:
+		case erropdata_td:
+			// outdoor unit discharge pipe ???
+		case opdata_tho_r1:
+		case erropdata_tho_r1:
+			// Outdoor unit some temperature?, (0.327f * value - 11.4f), unit °C?
+		case opdata_thi_r1:
+		case erropdata_thi_r1:
+			// Indoor heat exchanger temperature 1 (u-bend), (0.327f * value - 11.4f), unit °C?
+		case opdata_thi_r2:
+		case erropdata_thi_r2:
+			// Indoor heat exchanger temperature 2 (capillary), (0.327f * value - 11.4f), unit °C?
+		case opdata_thi_r3:
+		case erropdata_thi_r3:
+			// Indoor heat exchanger temperature 3 (suction heater), (0.327f * value - 11.4f), unit °C?
+		case opdata_ou_eev1:
+		case erropdata_ou_eev1:
+			// Outdoor unit expansion valve ???
+			break;
 		default:
 			ESP_LOGD("mhi_ac", "Got unknown callback, status: %d, value: %d", status, value);
 			break;
