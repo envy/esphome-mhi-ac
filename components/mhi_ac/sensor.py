@@ -29,49 +29,50 @@ from esphome.const import (
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_TEMPERATURE,
 )
-from . import MhiHeatPump, CONF_MHIHEATPUMP_ID
+from . import MhiAc, CONF_MHIAC_ID
+
+DEPENDENCIES = ['mhi_ac']
+AUTO_LOAD = ['climate']
 
 CONF_OUTDOOR_TEMPERATURE = "outdoor_temperature"
 
 TYPES = [
     CONF_OUTDOOR_TEMPERATURE,
-    CONF_CURRENT,
+    # CONF_CURRENT,
 ]
 
-print(dir(sensor.sensor_schema))
-help(sensor.sensor_schema)
+MhiAcSensor = cg.global_ns.class_("MhiAcSensor", cg.Component)
+
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
-            cv.GenerateID(): cv.declare_id(MhiHeatPump),
-            cv.GenerateID(CONF_MHIHEATPUMP_ID): cv.use_id(MhiHeatPump),
+            cv.GenerateID(): cv.declare_id(MhiAcSensor),
+            cv.GenerateID(CONF_MHIAC_ID): cv.use_id(MhiAc),
             cv.Optional(CONF_OUTDOOR_TEMPERATURE): sensor.sensor_schema(
                 unit_of_measurement=UNIT_CELSIUS,
                 icon=ICON_THERMOMETER,
-                accuracy_decimals=0,
+                accuracy_decimals=1,
                 device_class=DEVICE_CLASS_TEMPERATURE,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-            cv.Optional(CONF_CURRENT): sensor.sensor_schema(
-                unit_of_measurement=UNIT_AMPERE,
-                icon="mdi:current-ac",
-                accuracy_decimals=1,
-                device_class=DEVICE_CLASS_CURRENT,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-           
+            # cv.Optional(CONF_CURRENT): sensor.sensor_schema(
+            #     unit_of_measurement=UNIT_AMPERE,
+            #     icon="mdi:current-ac",
+            #     accuracy_decimals=1,
+            #     device_class=DEVICE_CLASS_CURRENT,
+            #     state_class=STATE_CLASS_MEASUREMENT,
+            # ),
         }
     )
-    )
-
-async def setup_conf(config, key, hub):
-    if key in config:
-        conf = config[key]
-        sens = await sensor.new_sensor(conf)
-        cg.add(getattr(hub, f"set_{key}_sensor")(sens))
-
+)
 
 async def to_code(config):
-    paren = await cg.get_variable(config[CONF_MHIHEATPUMP_ID])
+    mhiAcSensorVar = cg.new_Pvariable(config[CONF_ID])
+    mhiAcVar = await cg.get_variable(config[CONF_MHIAC_ID])
+    cg.add(mhiAcVar.set_sensor_cb(mhiAcSensorVar))
+    cg.add(mhiAcSensorVar.set_mhi_ac(mhiAcVar))
     for key in TYPES:
-        await setup_conf(config, key, paren)
+        if key in config:
+            conf = config[key]
+            sens = await sensor.new_sensor(conf)
+            cg.add(getattr(mhiAcSensorVar, f"set_{key}_sensor")(sens))
