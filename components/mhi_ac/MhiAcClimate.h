@@ -40,7 +40,7 @@ public:
 	}
 
 	void loop() override {
-		if (this->mhi_current_temp_changed && this->mhi_last_current_temp_change + mhi_last_current_temp_change_wait_time > esphome::millis()) {
+		if (this->mhi_current_temp_changed && (this->mhi_last_current_temp_change + mhi_last_current_temp_change_wait_time) < esphome::millis()) {
 			this->mhi_current_temp_changed = false;
 			ESP_LOGD("mhi_ac_climate", "Sending room temperature %f °C", this->current_temperature);
 			publish_state();

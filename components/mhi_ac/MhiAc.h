@@ -18,6 +18,8 @@ public:
 class MhiAcSensorCallback {
 public:
 	virtual void mhi_set_outdoor_temperature(float) = 0;
+	virtual void mhi_set_current(float) = 0;
+	virtual void mhi_set_energy(float) = 0;
 };
 
 class MhiAc : public Component, public CallbackInterface_Status {
@@ -194,6 +196,25 @@ public:
 				float temp = (value - 94) * 0.25f;
 				if (sensorCb) {
 					sensorCb->mhi_set_outdoor_temperature(temp);
+				}
+			}
+			break;
+		case opdata_ct:
+		case erropdata_ct:
+			ESP_LOGD("mhi_ac", "Got opdata_ct %d (%d)", value, status);
+			{
+				float current = (value * 14.0f) / 51.0f;
+				if (sensorCb) {
+					sensorCb->mhi_set_current(current);
+				}
+			}
+			break;
+		case opdata_kwh:
+			ESP_LOGD("mhi_ac", "Got opdata_kwh %d", value);
+			{
+				float energy = value * 0.25f;
+				if (sensorCb) {
+					sensorCb->mhi_set_energy(energy);
 				}
 			}
 			break;

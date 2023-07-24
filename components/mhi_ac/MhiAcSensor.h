@@ -16,7 +16,9 @@ class MhiAcSensor : public Component, public MhiAcSensorCallback
 private:
 	MhiAc *mhi_ac = nullptr;
 
-    sensor::Sensor* mhi_outdoor_temperature = nullptr;
+	sensor::Sensor* mhi_outdoor_temperature = nullptr;
+	sensor::Sensor* mhi_current = nullptr;
+	sensor::Sensor* mhi_energy = nullptr;
 
 public:
 	void setup() override {
@@ -33,17 +35,31 @@ public:
 		mhi_outdoor_temperature = outdoor_temperature;
 	}
 
-    void mhi_set_outdoor_temperature(float temp) {
-        if (mhi_outdoor_temperature) {
-            mhi_outdoor_temperature->publish_state(temp);
-        }
-    }
-
-    /*
-	void set_current_sensor(sensor::Sensor *current) {
-		current_ = current;
+	void mhi_set_outdoor_temperature(float temp) override {
+		if (mhi_outdoor_temperature) {
+			mhi_outdoor_temperature->publish_state(temp);
+		}
 	}
-	*/
+
+	void set_current_sensor(sensor::Sensor *current) {
+		mhi_current = current;
+	}
+
+	void mhi_set_current(float current) override {
+		if (mhi_current) {
+			mhi_current->publish_state(current);
+		}
+	}
+
+	void set_energy_sensor(sensor::Sensor *energy) {
+		mhi_energy = energy;
+	}
+
+	void mhi_set_energy(float energy) override {
+		if (mhi_energy) {
+			mhi_energy->publish_state(energy);
+		}
+	}
 	
 
 	/*
