@@ -47,28 +47,30 @@ public:
 	}
 
 	void mhi_set_power(bool power) {
+		ESP_LOGD("mhi_ac", "Setting power to %s", YESNO(power));
 		this->ac.set_power(power);
 	}
 
 	void mhi_set_climate_mode(climate::ClimateMode mode) {
+		ESP_LOGD("mhi_ac", "Setting climate mode to %d", mode);
 		switch (mode) {
 		case climate::CLIMATE_MODE_OFF:
 			this->ac.set_power(false);
-			break;
-		case climate::CLIMATE_MODE_HEAT:
-			this->ac.set_mode(mode_heat);
-			this->ac.set_power(true);
 			break;
 		case climate::CLIMATE_MODE_COOL:
 			this->ac.set_mode(mode_cool);
 			this->ac.set_power(true);
 			break;
-		case climate::CLIMATE_MODE_DRY:
-			this->ac.set_mode(mode_dry);
+		case climate::CLIMATE_MODE_HEAT:
+			this->ac.set_mode(mode_heat);
 			this->ac.set_power(true);
 			break;
 		case climate::CLIMATE_MODE_FAN_ONLY:
 			this->ac.set_mode(mode_fan);
+			this->ac.set_power(true);
+			break;
+		case climate::CLIMATE_MODE_DRY:
+			this->ac.set_mode(mode_dry);
 			this->ac.set_power(true);
 			break;
 		case climate::CLIMATE_MODE_AUTO:
@@ -77,11 +79,13 @@ public:
 			break;
 		default:
 			// Other modes not supported.
+			ESP_LOGW("mhi_ac", "Got unsupported climate mode %d", mode);
 			break;
 		}
 	}
 
 	void mhi_set_fan_mode(climate::ClimateFanMode mode) {
+		ESP_LOGD("mhi_ac", "Setting fan mode to %d", mode);
 		switch (mode) {
 		case climate::CLIMATE_FAN_QUIET:
 			this->ac.set_fan(0);
@@ -100,11 +104,13 @@ public:
 			break;
 		default:
 			// Other modes not supported.
+			ESP_LOGW("mhi_ac", "Got unsupported fan mode %d", mode);
 			break;
 		}
 	}
 
 	void mhi_set_target_temperature(float temp) {
+		ESP_LOGD("mhi_ac", "Setting target temperature to %f", temp);
 		float t = roundf(clamp(temp, 18.0f, 30.0f));
 		this->ac.set_tsetpoint((byte)(t * 2));
 	}
@@ -138,7 +144,7 @@ public:
 		switch (status) {
 		case status_mode:
 		case opdata_mode:
-			ESP_LOGD("mhi_ac", "Got opdata_mode %x (%d)", value, status);
+			//ESP_LOGD("mhi_ac", "Got opdata_mode %x (%d)", value, status);
 			{
 				auto mode = modeToClimate(value);
 				if (mode.has_value() && climateCb) {
@@ -147,7 +153,7 @@ public:
 			}
 			break;
 		case erropdata_mode:
-			ESP_LOGD("mhi_ac", "Got erropdata_mode %x", value);
+			//ESP_LOGD("mhi_ac", "Got erropdata_mode %x", value);
 			{
 				auto mode = modeToClimate(value);
 				if (mode.has_value() && climateCb) {
@@ -156,7 +162,7 @@ public:
 			}
 			break;
 		case status_power:
-			ESP_LOGD("mhi_ac", "Got status_power %d", value);
+			//ESP_LOGD("mhi_ac", "Got status_power %d", value);
 			{
 				if (climateCb) {
 					climateCb->mhi_set_power(value == power_on);
@@ -164,7 +170,7 @@ public:
 			}
 			break;
 		case status_troom:
-			ESP_LOGD("mhi_ac", "Got status_troom %f °C", (value - 61) / 4.0);
+			//ESP_LOGD("mhi_ac", "Got status_troom %f °C", (value - 61) / 4.0);
 			{
 				if (climateCb) {
 					climateCb->mhi_set_room_temperature((value - 61) / 4.0);
@@ -172,7 +178,7 @@ public:
 			}
 			break;
 		case status_fan:
-			ESP_LOGD("mhi_ac", "Got status_fan %d", value);
+			//ESP_LOGD("mhi_ac", "Got status_fan %d", value);
 			{
 				auto mode = modeToFan(value);
 				if (mode.has_value() && climateCb) {
@@ -181,7 +187,7 @@ public:
 			}
 			break;
 		case status_tsetpoint:
-			ESP_LOGD("mhi_ac", "Got status_tsetpoint %d", value);
+			//ESP_LOGD("mhi_ac", "Got status_tsetpoint %d", value);
 			{
 				float temp = (value & 0x7f) / 2.0;
 				if (climateCb) {
@@ -191,7 +197,7 @@ public:
 			break;
 		case opdata_outdoor:
 		case erropdata_outdoor:
-			ESP_LOGD("mhi_ac", "Got opdata_outdoor %d (%d)", value, status);
+			//ESP_LOGD("mhi_ac", "Got opdata_outdoor %d (%d)", value, status);
 			{
 				float temp = (value - 94) * 0.25f;
 				if (sensorCb) {
@@ -201,7 +207,7 @@ public:
 			break;
 		case opdata_ct:
 		case erropdata_ct:
-			ESP_LOGD("mhi_ac", "Got opdata_ct %d (%d)", value, status);
+			//ESP_LOGD("mhi_ac", "Got opdata_ct %d (%d)", value, status);
 			{
 				float current = (value * 14.0f) / 51.0f;
 				if (sensorCb) {
@@ -210,7 +216,7 @@ public:
 			}
 			break;
 		case opdata_kwh:
-			ESP_LOGD("mhi_ac", "Got opdata_kwh %d", value);
+			//ESP_LOGD("mhi_ac", "Got opdata_kwh %d", value);
 			{
 				float energy = value * 0.25f;
 				if (sensorCb) {

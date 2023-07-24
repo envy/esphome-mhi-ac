@@ -55,7 +55,10 @@ public:
 		if (call.get_mode().has_value()) {
 			ClimateMode mode = *call.get_mode();
 			if (mode == CLIMATE_MODE_OFF) {
-				this->mhi_ac->mhi_set_climate_mode(CLIMATE_MODE_OFF);
+				this->mhi_climate_mode = CLIMATE_MODE_OFF;
+				// Setting climate mode to off does not work for some reason?!?!
+				// this->mhi_ac->mhi_set_climate_mode(CLIMATE_MODE_OFF);
+				this->mhi_ac->mhi_set_power(false);
 				this->mhi_on = false;
 			} else if (mode == CLIMATE_MODE_HEAT) {
 				this->mhi_climate_mode = CLIMATE_MODE_HEAT;
@@ -109,9 +112,9 @@ public:
 		return traits;
 	}
 
-	void mhi_set_power(bool on) override {
-		this->mhi_on = on;
-		ESP_LOGD("mhi_ac_climate", "Sending power mode %s", YESNO(on));
+	void mhi_set_power(bool power) override {
+		this->mhi_on = power;
+		ESP_LOGD("mhi_ac_climate", "Sending power mode %s", YESNO(power));
 		if (this->mhi_on) {
 			this->mode = this->mhi_climate_mode;
 			publish_state();
