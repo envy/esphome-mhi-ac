@@ -2,9 +2,8 @@
 
 #include <Arduino.h>
 
-// comment out the data you are not interested, but at least leave the last dummy row
+// comment out the data you are not interested, but at least leave one row !
 const byte opdata[][2] PROGMEM = {
-  //{ 0xc0, 0x94},  //  ? "opdata_0x94", background is unknown.
   { 0xc0, 0x02},  //  1 "MODE"
   { 0xc0, 0x05},  //  2 "SET-TEMP" [°C]
   { 0xc0, 0x80},  //  3 "RETURN-AIR" [°C]
@@ -24,11 +23,13 @@ const byte opdata[][2] PROGMEM = {
   { 0x40, 0x0c},  // 36 "DEFROST"
   { 0x40, 0x1e},  // 37 "TOTAL-COMP-RUN" [h]
   { 0x40, 0x13},  // 38 "OU-EEV" [Puls]
-  { 0x00, 0x00},  // dummy
+  { 0xc0, 0x94},  //    "energy-used" [kWh]
+
 };
 
-#define NoFramesPerPacket 20                 // number of frames/packet, must be an even number
-
+//#define NoFramesPerPacket 20                 // number of frames/packet, must be an even number
+#define NoFramesPerOpDataCycle 400             // number of frames used for a OpData request cycle; will be 20s (20 frames are 1s)
+#define minTimeInternalTroom 5000              // minimal time in ms used for Troom internal sensor changes for publishing to avoid jitter
 
 // pin defintions
 #define SCK_PIN  14
@@ -63,7 +64,7 @@ enum ACType {   // Type enum
 
 enum ACStatus { // Status enum
   status_power = type_status, status_mode, status_fan, status_vanes, status_troom, status_tsetpoint, status_errorcode,
-  opdata_mode = type_opdata, opdata_0x94, opdata_tsetpoint, opdata_return_air, opdata_outdoor, opdata_tho_r1, opdata_iu_fanspeed, opdata_thi_r1, opdata_thi_r2, opdata_thi_r3,
+  opdata_mode = type_opdata, opdata_kwh, opdata_tsetpoint, opdata_return_air, opdata_outdoor, opdata_tho_r1, opdata_iu_fanspeed, opdata_thi_r1, opdata_thi_r2, opdata_thi_r3,
   opdata_ou_fanspeed, opdata_total_iu_run, opdata_total_comp_run, opdata_comp, opdata_ct, opdata_td,
   opdata_tdsh, opdata_protection_no, opdata_defrost, opdata_ou_eev1, opdata_unknown,
   erropdata_mode = type_erropdata, erropdata_tsetpoint, erropdata_return_air, erropdata_thi_r1, erropdata_thi_r2, erropdata_thi_r3,
@@ -101,7 +102,7 @@ class MHI_AC_Ctrl_Core {
     byte status_errorcode_old;
 
     // old operating data
-    byte op_0x94_old;
+    uint16_t op_kwh_old;
     byte op_mode_old;
     byte op_settemp_old;
     byte op_return_air_old;
@@ -143,7 +144,7 @@ class MHI_AC_Ctrl_Core {
 
     void init();                          // initialization called once after boot
     void reset_old_values();              // resets the 'old' variables ensuring that all status information are resend
-    int loop(int max_time_ms);            // receive / transmit a frame of 20 bytes
+    int loop(uint max_time_ms);            // receive / transmit a frame of 20 bytes
     void set_power(boolean power);        // power on/off the AC
     void set_mode(ACMode mode);           // change AC mode (e.g. heat, dry, cool etc.)
     void set_tsetpoint(uint tsetpoint);   // set the target temperature of the AC)
