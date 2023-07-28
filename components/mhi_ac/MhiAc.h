@@ -41,10 +41,14 @@ public:
 	void setup() override {
 		ac.MHIAcCtrlStatus(this);
 		ac.init();
+		// We call ac.loop() once to test communication, otherwise mark us as failed
+		if (ac.loop(this->processing_time) < 0) {
+			this->mark_failed();
+		}
 	}
 
 	void loop() override {
-		ac.loop(processing_time);
+		ac.loop(this->processing_time);
 	}
 
 	void set_processing_time(uint16_t time) {

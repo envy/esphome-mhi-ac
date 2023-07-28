@@ -35,11 +35,7 @@ public:
 	}
 
 	void loop() override {
-		if (this->mhi_current_temp_changed && this->mhi_last_current_temp_change < esphome::millis() - this->mhi_last_current_temp_change_wait_time) {
-			this->mhi_current_temp_changed = false;
-			ESP_LOGD("mhi_ac_climate", "Sending room temperature %f °C", this->current_temperature);
-			publish_state();
-		}
+		ESP_LOGD("mhi_ac", "climate loop called");
 	}
 
 	void set_mhi_ac(MhiAc *ac) {
@@ -151,11 +147,9 @@ public:
 	}
 
 	void mhi_set_room_temperature(float temp) override {
-		if (this->current_temperature != temp) {
-			this->current_temperature = temp;
-			this->mhi_last_current_temp_change = esphome::millis();
-			this->mhi_current_temp_changed = true;
-		}
+		ESP_LOGD("mhi_ac_climate", "Sending room temperature %f °C", temp);
+		this->current_temperature = temp;
+		publish_state();
 	}
 
 	void mhi_set_target_temperature(float temp) override {
