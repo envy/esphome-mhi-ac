@@ -2,14 +2,7 @@
 
 #include "MhiAc.h"
 
-#include "esphome/components/climate/climate.h"
-
-//#include "esphome/components/sensor/sensor.h"
-
-#define TROOM_FILTER_LIMIT 0.25
-
 using namespace esphome;
-using namespace esphome::climate;
 
 class MhiAcSensor : public Component, public MhiAcSensorCallback
 {

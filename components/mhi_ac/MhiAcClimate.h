@@ -4,10 +4,6 @@
 
 #include "esphome/components/climate/climate.h"
 
-//#include "esphome/components/sensor/sensor.h"
-
-#define TROOM_FILTER_LIMIT 0.25
-
 using namespace esphome;
 using namespace esphome::climate;
 
@@ -28,19 +24,18 @@ public:
 		this->mhi_current_temp_changed = false;
 		this->current_temperature = NAN;
 		this->target_temperature = 22.0f;
+		this->mode = CLIMATE_MODE_OFF;
+		this->fan_mode = CLIMATE_FAN_AUTO;
+		this->swing_mode = CLIMATE_SWING_OFF;
+
 		auto restore = this->restore_state_();
 		if (restore.has_value()) {
 			restore->apply(this);
-		} else {
-			this->mode = CLIMATE_MODE_OFF;
-			this->target_temperature = 22.0f;
-			this->fan_mode = CLIMATE_FAN_AUTO;
-			this->swing_mode = CLIMATE_SWING_OFF;
 		}
 	}
 
 	void loop() override {
-		if (this->mhi_current_temp_changed && (this->mhi_last_current_temp_change + mhi_last_current_temp_change_wait_time) < esphome::millis()) {
+		if (this->mhi_current_temp_changed && this->mhi_last_current_temp_change < esphome::millis() - this->mhi_last_current_temp_change_wait_time) {
 			this->mhi_current_temp_changed = false;
 			ESP_LOGD("mhi_ac_climate", "Sending room temperature %f °C", this->current_temperature);
 			publish_state();
@@ -53,7 +48,7 @@ public:
 
 	void control(const ClimateCall &call) override {
 		if (call.get_mode().has_value()) {
-			ClimateMode mode = *call.get_mode();
+			ClimateMode mode = call.get_mode().value();
 			if (mode == CLIMATE_MODE_OFF) {
 				this->mhi_climate_mode = CLIMATE_MODE_OFF;
 				// Setting climate mode to off does not work for some reason?!?!
@@ -83,7 +78,7 @@ public:
 		}
 
 		if (call.get_target_temperature().has_value()) {
-			this->mhi_ac->mhi_set_target_temperature(*call.get_target_temperature());
+			this->mhi_ac->mhi_set_target_temperature(call.get_target_temperature().value());
 			this->target_temperature = call.get_target_temperature().value();
 			this->publish_state();
 		}
@@ -99,7 +94,7 @@ public:
 
 	ClimateTraits traits() override {
 		// The capabilities of the climate device
-		auto traits = climate::ClimateTraits();
+		auto traits = ClimateTraits();
 		traits.set_supports_current_temperature(true);
 		traits.set_supported_modes({CLIMATE_MODE_OFF, CLIMATE_MODE_COOL, CLIMATE_MODE_HEAT, CLIMATE_MODE_FAN_ONLY, CLIMATE_MODE_DRY});
 		traits.set_supported_fan_modes({CLIMATE_FAN_QUIET, CLIMATE_FAN_LOW, CLIMATE_FAN_MEDIUM, CLIMATE_FAN_HIGH, CLIMATE_FAN_AUTO});
@@ -143,10 +138,24 @@ public:
 		}
 	}
 
+	void mhi_set_vertical_swing_mode(bool swing) override {
+		if (this->mhi_on) {
+			ESP_LOGD("mhi_ac_climate", "Sending vertical swing mode %s", YESNO(swing));
+			if (swing) {
+				this->swing_mode = CLIMATE_SWING_VERTICAL;
+			} else {
+				this->swing_mode = CLIMATE_SWING_OFF;
+			}
+			publish_state();
+		}
+	}
+
 	void mhi_set_room_temperature(float temp) override {
-		this->current_temperature = temp;
-		this->mhi_last_current_temp_change = esphome::millis();
-		this->mhi_current_temp_changed = true;
+		if (this->current_temperature != temp) {
+			this->current_temperature = temp;
+			this->mhi_last_current_temp_change = esphome::millis();
+			this->mhi_current_temp_changed = true;
+		}
 	}
 
 	void mhi_set_target_temperature(float temp) override {

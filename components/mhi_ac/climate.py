@@ -17,7 +17,7 @@ MhiAcClimate = cg.global_ns.class_("MhiAcClimate", climate.Climate, cg.Component
 CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(
     {
         cv.GenerateID(): cv.declare_id(MhiAcClimate),
-        cv.GenerateID(CONF_MHIAC_ID): cv.use_id(MhiAc)
+        cv.GenerateID(CONF_MHIAC_ID): cv.use_id(MhiAc),
     }
 ).extend(cv.COMPONENT_SCHEMA)
 

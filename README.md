@@ -14,7 +14,8 @@ external_components:
 
 # Exactly one mhi_ac must exist in the configuration
 mhi_ac:
-  # No configuration needed/possible (yet)
+  # Optional configuration with default values below
+  processing_time: 100  # Time in ms that the component should communicate with the AC during each loop cycle.
 
 climate:
   - platform: mhi_ac
@@ -29,6 +30,12 @@ sensor:
       name: Current
     energy:
       name: Energy
+
+select:
+  - platform: mhi_ac
+    # All selects below are optional
+    vertical_vanes:
+      name: "Vertical Vanes"
 
 ```
 
