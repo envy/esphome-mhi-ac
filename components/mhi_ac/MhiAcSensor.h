@@ -2,16 +2,19 @@
 
 #include "MhiAc.h"
 
+#include "esphome/components/sensor/sensor.h"
+
 using namespace esphome;
+using namespace esphome::sensor;
 
 class MhiAcSensor : public Component, public MhiAcSensorCallback
 {
 private:
 	MhiAc *mhi_ac = nullptr;
 
-	sensor::Sensor* mhi_outdoor_temperature = nullptr;
-	sensor::Sensor* mhi_current = nullptr;
-	sensor::Sensor* mhi_energy = nullptr;
+	Sensor* mhi_outdoor_temperature = nullptr;
+	Sensor* mhi_current = nullptr;
+	Sensor* mhi_energy = nullptr;
 
 public:
 	void setup() override {
@@ -24,7 +27,7 @@ public:
 		this->mhi_ac = ac;
 	}
 
-	void set_outdoor_temperature_sensor(sensor::Sensor *outdoor_temperature) {
+	void set_outdoor_temperature_sensor(Sensor *outdoor_temperature) {
 		mhi_outdoor_temperature = outdoor_temperature;
 	}
 
@@ -34,7 +37,7 @@ public:
 		}
 	}
 
-	void set_current_sensor(sensor::Sensor *current) {
+	void set_current_sensor(Sensor *current) {
 		mhi_current = current;
 	}
 
@@ -44,7 +47,7 @@ public:
 		}
 	}
 
-	void set_energy_sensor(sensor::Sensor *energy) {
+	void set_energy_sensor(Sensor *energy) {
 		mhi_energy = energy;
 	}
 

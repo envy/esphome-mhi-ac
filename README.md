@@ -19,7 +19,9 @@ mhi_ac:
 
 climate:
   - platform: mhi_ac
-    name: "AC"
+    name: AC
+    # Optional configuration with default values below
+    vertical_swing_off_position: 2  # When swing is turned off, this is the position the vertical vanes will go to. Valid values: 1, 2, 3, 4
 
 sensor:
   - platform: mhi_ac
@@ -35,7 +37,7 @@ select:
   - platform: mhi_ac
     # All selects below are optional
     vertical_vanes:
-      name: "Vertical Vanes"
+      name: Vertical Vanes
 
 ```
 

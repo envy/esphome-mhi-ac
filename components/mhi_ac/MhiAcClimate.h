@@ -7,7 +7,7 @@
 using namespace esphome;
 using namespace esphome::climate;
 
-class MhiAcClimate : public Component, public climate::Climate, public MhiAcClimateCallback
+class MhiAcClimate : public Component, public Climate, public MhiAcClimateCallback
 {
 private:
 	MhiAc *mhi_ac = nullptr;
@@ -17,6 +17,8 @@ private:
 	bool mhi_current_temp_changed;
 	bool mhi_on;
 	ClimateMode mhi_climate_mode;
+
+	uint8_t mhi_vertical_swing_off_position = 2;
 
 public:
 	void setup() override {
@@ -40,6 +42,10 @@ public:
 
 	void set_mhi_ac(MhiAc *ac) {
 		this->mhi_ac = ac;
+	}
+
+	void set_vertical_swing_off_position(uint8_t pos) {
+		this->mhi_vertical_swing_off_position = pos;
 	}
 
 	void control(const ClimateCall &call) override {
@@ -85,7 +91,20 @@ public:
 			this->publish_state();
 		}
 
-		// TODO: vanes swing state?
+		if (call.get_swing_mode().has_value()) {
+			auto mode = call.get_swing_mode().value();
+			switch (mode) {
+			case CLIMATE_SWING_OFF:
+				this->mhi_ac->mhi_set_vertical_vanes((ACVanes)this->mhi_vertical_swing_off_position);
+				break;
+			case CLIMATE_SWING_VERTICAL:
+				this->mhi_ac->mhi_set_vertical_vanes(vanes_swing);
+				break;
+			default:
+				ESP_LOGD("mhi_ac", "Got unsupported swing mode %d", mode);
+				break;
+			}
+		}
 	}
 
 	ClimateTraits traits() override {
