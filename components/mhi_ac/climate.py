@@ -1,7 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import climate
-from esphome.core import coroutine
 from esphome.const import CONF_ID
 from . import MhiAc, CONF_MHIAC_ID
 
@@ -21,10 +20,9 @@ CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
-@coroutine
-def to_code(config):
+async def to_code(config):
     mhiAcClimateVar = cg.new_Pvariable(config[CONF_ID])
-    mhiAcVar = yield cg.get_variable(config[CONF_MHIAC_ID])
-    yield climate.register_climate(mhiAcClimateVar, config)
-    yield cg.add(mhiAcVar.set_climate_cb(mhiAcClimateVar))
-    yield cg.add(mhiAcClimateVar.set_mhi_ac(mhiAcVar))
+    mhiAcVar = await cg.get_variable(config[CONF_MHIAC_ID])
+    await climate.register_climate(mhiAcClimateVar, config)
+    cg.add(mhiAcVar.set_climate_cb(mhiAcClimateVar))
+    cg.add(mhiAcClimateVar.set_mhi_ac(mhiAcVar))
