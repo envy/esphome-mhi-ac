@@ -1,7 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
-from esphome.core import coroutine
 
 AUTO_LOAD = ['climate']
 MULTI_CONF = False
@@ -18,8 +17,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional(CONF_PROCESSING_TIME, default=CONF_PROCESSING_TIME_DEFAULT): cv.int_range(min=25, max=500),
 }).extend(cv.COMPONENT_SCHEMA)
 
-@coroutine
-def to_code(config):
+async def to_code(config):
     mhiAc = cg.new_Pvariable(config[CONF_ID])
-    yield cg.add(mhiAc.set_processing_time(config[CONF_PROCESSING_TIME]))
-    yield cg.register_component(mhiAc, config)
+    cg.add(mhiAc.set_processing_time(config[CONF_PROCESSING_TIME]))
+    await cg.register_component(mhiAc, config)
