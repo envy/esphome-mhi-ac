@@ -61,3 +61,68 @@ public:
 		}
 	}
 };
+
+class MhiAcHorizontalVanesSelect : public Component, public Select, public MhiAcHorizontalVanesSelectCallback {
+private:
+	MhiAc *mhi_ac = nullptr;
+
+public:
+	void dump_config() override {
+		LOG_SELECT("", "MhiAcHorizontalVanesSelect", this);
+	}
+
+	void set_mhi_ac(MhiAc *ac) {
+		this->mhi_ac = ac;
+	}
+
+	void control(const std::string &value) override {
+		auto options = this->traits.get_options();
+		if (value.compare(options[0]) == 0) {
+			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_1);
+		} else if (value.compare(options[1]) == 0) {
+			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_2);
+		} else if (value.compare(options[2]) == 0) {
+			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_3);
+		} else if (value.compare(options[3]) == 0) {
+			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_4);
+		} else if (value.compare(options[4]) == 0) {
+			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_5);
+		} else if (value.compare(options[5]) == 0) {
+			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_6);
+		} else if (value.compare(options[6]) == 0) {
+			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_7);
+        } else if (value.compare(options[7]) == 0) {
+            this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_swing);
+        }
+	}
+
+	void mhi_set_horizontal_vanes(ACVanesLR vanes) override {
+		auto options = this->traits.get_options();
+		switch(vanes) {
+		case vanesLR_1:
+			publish_state(options[0]);
+			break;
+		case vanesLR_2:
+			publish_state(options[1]);
+			break;
+		case vanesLR_3:
+			publish_state(options[2]);
+			break;
+		case vanesLR_4:
+			publish_state(options[3]);
+			break;
+		case vanesLR_5:
+			publish_state(options[4]);
+			break;
+		case vanesLR_6:
+			publish_state(options[5]);
+			break;
+		case vanesLR_7:
+			publish_state(options[6]);
+			break;
+		case vanesLR_swing:
+			publish_state(options[7]);
+			break;
+		}
+	}
+};

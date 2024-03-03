@@ -12,6 +12,8 @@ public:
 	virtual void mhi_set_climate_mode(climate::ClimateMode) = 0;
 	virtual void mhi_set_fan_mode(climate::ClimateFanMode) = 0;
 	virtual void mhi_set_vertical_swing_mode(bool) = 0;
+	virtual void mhi_set_horizontal_swing_mode(bool) = 0;
+	virtual void mhi_update_swing_mode() = 0;
 	virtual void mhi_set_room_temperature(float) = 0;
 	virtual void mhi_set_target_temperature(float) = 0;
 };
@@ -28,19 +30,30 @@ public:
 	virtual void mhi_set_vertical_vanes(ACVanes) = 0;
 };
 
+class MhiAcHorizontalVanesSelectCallback {
+public:
+	virtual void mhi_set_horizontal_vanes(ACVanesLR) = 0;
+};
+
 class MhiAc : public Component, public CallbackInterface_Status {
 private:
 	MHI_AC_Ctrl_Core ac;
 	MhiAcClimateCallback *climateCb = nullptr;
 	MhiAcSensorCallback *sensorCb = nullptr;
 	MhiAcVerticalVanesSelectCallback *verticalVanesSelectCb = nullptr;
+	MhiAcHorizontalVanesSelectCallback *horizontalVanesSelectCb = nullptr;
 
 	uint16_t processing_time = 100;
+	bool use_extended_frame_format = false;
 
 public:
 	void setup() override {
 		ac.MHIAcCtrlStatus(this);
 		ac.init();
+		if (use_extended_frame_format) {
+			ac.set_frame_size(33);
+		}
+		ac.reset_old_values();
 		// We call ac.loop() once to test communication, otherwise mark us as failed
 		if (ac.loop(this->processing_time) < 0) {
 			this->mark_failed();
@@ -55,6 +68,10 @@ public:
 		this->processing_time = time;
 	}
 
+	void set_use_extended_frame_format(bool b) {
+		this->use_extended_frame_format = b;
+	}
+
 	void set_climate_cb(MhiAcClimateCallback *cb) {
 		this->climateCb = cb;
 	}
@@ -65,6 +82,10 @@ public:
 
 	void set_vertical_vanes_select_cb(MhiAcVerticalVanesSelectCallback *cb) {
 		this->verticalVanesSelectCb = cb;
+	}
+
+	void set_horizontal_vanes_select_cb(MhiAcHorizontalVanesSelectCallback *cb) {
+		this->horizontalVanesSelectCb = cb;
 	}
 
 	void mhi_set_power(bool power) {
@@ -137,8 +158,13 @@ public:
 	}
 
 	void mhi_set_vertical_vanes(ACVanes value) {
-		ESP_LOGD("mhi_ac", "Setting vanes to %d", value);
+		ESP_LOGD("mhi_ac", "Setting vertical vanes to %d", value);
 		this->ac.set_vanes(value);
+	}
+
+	void mhi_set_horizontal_vanes(ACVanesLR value) {
+		ESP_LOGD("mhi_ac", "Setting horizontal vanes to %d", value);
+		this->ac.set_vanesLR(value);
 	}
 
 	static optional<climate::ClimateMode> modeToClimate(const int &mode) {
@@ -148,6 +174,9 @@ public:
 			case mode_dry: return climate::CLIMATE_MODE_DRY;
 			case mode_fan: return climate::CLIMATE_MODE_FAN_ONLY;
 			case mode_auto: return climate::CLIMATE_MODE_AUTO;
+			default:
+				ESP_LOGD("mhi_ac", "Got unknown climate mode %d", mode);
+				break;
 		}
 		return {};
 	}
@@ -230,6 +259,19 @@ public:
 				}
 				if (climateCb) {
 					climateCb->mhi_set_vertical_swing_mode(value == vanes_swing);
+					climateCb->mhi_update_swing_mode();
+				}
+			}
+			break;
+		case status_vanesLR:
+			ESP_LOGD("mhi_ac", "Got status_vanesLR %d", value);
+			{
+				if (horizontalVanesSelectCb) {
+					horizontalVanesSelectCb->mhi_set_horizontal_vanes((ACVanesLR)value);
+				}
+				if (climateCb) {
+					climateCb->mhi_set_horizontal_swing_mode(value == vanesLR_swing);
+					climateCb->mhi_update_swing_mode();
 				}
 			}
 			break;

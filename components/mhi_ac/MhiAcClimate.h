@@ -11,19 +11,18 @@ class MhiAcClimate : public Component, public Climate, public MhiAcClimateCallba
 {
 private:
 	MhiAc *mhi_ac = nullptr;
-
-	uint32_t mhi_last_current_temp_change = 0;
-	uint32_t mhi_last_current_temp_change_wait_time = 1000;
-	bool mhi_current_temp_changed;
 	bool mhi_on;
 	ClimateMode mhi_climate_mode;
 
-	uint8_t mhi_vertical_swing_off_position = 2;
+	uint8_t mhi_vertical_swing_off_position = vanes_2; // mid-up
+	uint8_t mhi_horizontal_swing_off_position = vanesLR_3; // middle
+
+	bool mhi_last_vertical_swing;
+	bool mhi_last_horizontal_swing;
 
 public:
 	void setup() override {
 		this->mhi_on = false;
-		this->mhi_current_temp_changed = false;
 		this->current_temperature = NAN;
 		this->target_temperature = 22.0f;
 		this->mode = CLIMATE_MODE_OFF;
@@ -46,6 +45,10 @@ public:
 
 	void set_vertical_swing_off_position(uint8_t pos) {
 		this->mhi_vertical_swing_off_position = pos;
+	}
+
+	void set_horizontal_swing_off_position(uint8_t pos) {
+		this->mhi_horizontal_swing_off_position = pos;
 	}
 
 	void control(const ClimateCall &call) override {
@@ -96,9 +99,17 @@ public:
 			switch (mode) {
 			case CLIMATE_SWING_OFF:
 				this->mhi_ac->mhi_set_vertical_vanes((ACVanes)this->mhi_vertical_swing_off_position);
+				this->mhi_ac->mhi_set_horizontal_vanes((ACVanesLR)this->mhi_horizontal_swing_off_position);
 				break;
 			case CLIMATE_SWING_VERTICAL:
 				this->mhi_ac->mhi_set_vertical_vanes(vanes_swing);
+				break;
+			case CLIMATE_SWING_HORIZONTAL:
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_swing);
+				break;
+			case CLIMATE_SWING_BOTH:
+				this->mhi_ac->mhi_set_vertical_vanes(vanes_swing);
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_swing);
 				break;
 			default:
 				ESP_LOGD("mhi_ac", "Got unsupported swing mode %d", mode);
@@ -133,7 +144,7 @@ public:
 			publish_state();
 		}
 	}
-  
+
 	void mhi_set_climate_mode(ClimateMode mode) override {
 		// Always save last received climate mode
 		this->mhi_climate_mode = mode;
@@ -154,16 +165,30 @@ public:
 	}
 
 	void mhi_set_vertical_swing_mode(bool swing) override {
+		this->mhi_last_vertical_swing = swing;
+	}
+
+	void mhi_set_horizontal_swing_mode(bool swing) override {
+		this->mhi_last_horizontal_swing = swing;
+	}
+
+	void mhi_update_swing_mode() override {
 		if (this->mhi_on) {
-			ESP_LOGD("mhi_ac_climate", "Sending vertical swing mode %s", YESNO(swing));
-			if (swing) {
+			if (mhi_last_vertical_swing && mhi_last_horizontal_swing) {
+				this->swing_mode = CLIMATE_SWING_BOTH;
+			} else if (mhi_last_vertical_swing && !mhi_last_horizontal_swing) {
 				this->swing_mode = CLIMATE_SWING_VERTICAL;
+			} else if (!mhi_last_vertical_swing && mhi_last_horizontal_swing) {
+				this->swing_mode = CLIMATE_SWING_HORIZONTAL;
 			} else {
 				this->swing_mode = CLIMATE_SWING_OFF;
 			}
+			ESP_LOGD("mhi_ac_climate", "Sending swing mode %s", climate_swing_mode_to_string(this->swing_mode));
 			publish_state();
 		}
 	}
+
+
 
 	void mhi_set_room_temperature(float temp) override {
 		ESP_LOGD("mhi_ac_climate", "Sending room temperature %f °C", temp);
