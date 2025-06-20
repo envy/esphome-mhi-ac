@@ -50,9 +50,8 @@ CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(CONF_MHIAC_ID): cv.use_id(MhiAc),
-            cv.Optional(CONF_VERTICAL_VANES): select.SELECT_SCHEMA.extend(
+            cv.Optional(CONF_VERTICAL_VANES): select.select_schema(MhiAcVerticalVanesSelect).extend(
                 {
-                    cv.GenerateID(): cv.declare_id(MhiAcVerticalVanesSelect),
                     cv.Optional(CONF_SELECTION_UP, default=CONF_SELECTION_UP_DEFAULT): cv.string,
                     cv.Optional(CONF_SELECTION_MIDUP, default=CONF_SELECTION_MIDUP_DEFAULT): cv.string,
                     cv.Optional(CONF_SELECTION_MIDDOWN, default=CONF_SELECTION_MIDDOWN_DEFAULT): cv.string,
@@ -61,9 +60,8 @@ CONFIG_SCHEMA = cv.All(
                     cv.Optional(CONF_ICON, default="mdi:compare-vertical"): cv.icon,
                 }
             ),
-            cv.Optional(CONF_HORIZONTAL_VANES): select.SELECT_SCHEMA.extend(
+            cv.Optional(CONF_HORIZONTAL_VANES): select.select_schema(MhiAcHorizontalVanesSelect).extend(
                 {
-                    cv.GenerateID(): cv.declare_id(MhiAcHorizontalVanesSelect),
                     cv.Optional(CONF_SELECTION_LEFT, default=CONF_SELECTION_LEFT_DEFAULT): cv.string,
                     cv.Optional(CONF_SELECTION_MIDLEFT, default=CONF_SELECTION_MIDLEFT_DEFAULT): cv.string,
                     cv.Optional(CONF_SELECTION_MIDDLE, default=CONF_SELECTION_MIDDLE_DEFAULT): cv.string,

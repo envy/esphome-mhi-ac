@@ -18,9 +18,8 @@ CONF_VERTICAL_SWING_OFF_POSITION_DEFAULT = 2
 CONF_HORIZONTAL_SWING_OFF_POSITION = 'horizontal_swing_off_positon'
 CONF_HORIZONTAL_SWING_OFF_POSITION_DEFAULT = 3
 
-CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(
+CONFIG_SCHEMA = climate.climate_schema(MhiAcClimate).extend(
     {
-        cv.GenerateID(): cv.declare_id(MhiAcClimate),
         cv.GenerateID(CONF_MHIAC_ID): cv.use_id(MhiAc),
         cv.Optional(CONF_VERTICAL_SWING_OFF_POSITION, default=CONF_VERTICAL_SWING_OFF_POSITION_DEFAULT): cv.int_range(min=1, max=4),
         cv.Optional(CONF_HORIZONTAL_SWING_OFF_POSITION, default=CONF_HORIZONTAL_SWING_OFF_POSITION_DEFAULT): cv.int_range(min=1, max=7)
