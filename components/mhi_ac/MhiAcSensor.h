@@ -15,6 +15,7 @@ private:
 	Sensor* mhi_outdoor_temperature = nullptr;
 	Sensor* mhi_current = nullptr;
 	Sensor* mhi_energy = nullptr;
+	Sensor* mhi_protection_state = nullptr;
 
 public:
 	void setup() override {
@@ -54,6 +55,16 @@ public:
 	void mhi_set_energy(float energy) override {
 		if (mhi_energy) {
 			mhi_energy->publish_state(energy);
+		}
+	}
+
+	void set_protection_state_sensor(Sensor *protection_state) {
+		mhi_protection_state = protection_state;
+	}
+
+	void mhi_set_protection_state(int state) override {
+		if (mhi_protection_state) {
+			mhi_protection_state->publish_state(state);
 		}
 	}
 	

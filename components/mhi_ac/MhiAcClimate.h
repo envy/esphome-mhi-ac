@@ -72,6 +72,10 @@ public:
 				this->mhi_climate_mode = CLIMATE_MODE_FAN_ONLY;
 				this->mhi_on = true;
 				this->mhi_ac->mhi_set_climate_mode(CLIMATE_MODE_FAN_ONLY);
+			} else if (mode == CLIMATE_MODE_DRY) {
+				this->mhi_climate_mode = CLIMATE_MODE_DRY;
+				this->mhi_on = true;
+				this->mhi_ac->mhi_set_climate_mode(CLIMATE_MODE_DRY);
 			} else if (mode == CLIMATE_MODE_AUTO) {
 				this->mhi_climate_mode = CLIMATE_MODE_AUTO;
 				this->mhi_on = true;
@@ -124,7 +128,7 @@ public:
 		traits.set_supports_current_temperature(true);
 		traits.set_supported_modes({CLIMATE_MODE_OFF, CLIMATE_MODE_COOL, CLIMATE_MODE_HEAT, CLIMATE_MODE_FAN_ONLY, CLIMATE_MODE_DRY});
 		traits.set_supported_fan_modes({CLIMATE_FAN_QUIET, CLIMATE_FAN_LOW, CLIMATE_FAN_MEDIUM, CLIMATE_FAN_HIGH, CLIMATE_FAN_AUTO});
-		traits.set_supported_swing_modes({CLIMATE_SWING_OFF, CLIMATE_SWING_VERTICAL});
+		traits.set_supported_swing_modes({CLIMATE_SWING_OFF, CLIMATE_SWING_VERTICAL, CLIMATE_SWING_HORIZONTAL, CLIMATE_SWING_BOTH});
 		traits.set_visual_min_temperature(18.0f);
 		traits.set_visual_max_temperature(30.0f);
 		traits.set_visual_target_temperature_step(1.0f);

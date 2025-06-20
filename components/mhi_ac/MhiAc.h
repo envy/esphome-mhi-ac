@@ -23,6 +23,7 @@ public:
 	virtual void mhi_set_outdoor_temperature(float) = 0;
 	virtual void mhi_set_current(float) = 0;
 	virtual void mhi_set_energy(float) = 0;
+	virtual void mhi_set_protection_state(int) = 0;
 };
 
 class MhiAcVerticalVanesSelectCallback {
@@ -196,10 +197,11 @@ public:
 	}
 
 	void cbiStatusFunction(ACStatus status, int value) override {
+		// https://www.hrponline.co.uk/media/pdf/41/42/ed/Beijer-Ref-Service-Support-Handbook-19cWKESQUhzVIy5.pdf#page=9
 		switch (status) {
 		case status_mode:
 		case opdata_mode:
-			//ESP_LOGD("mhi_ac", "Got opdata_mode %x (%d)", value, status);
+			ESP_LOGD("mhi_ac", "Got opdata_mode %x (%d)", value, status);
 			{
 				auto mode = modeToClimate(value);
 				if (mode.has_value() && climateCb) {
@@ -208,7 +210,7 @@ public:
 			}
 			break;
 		case erropdata_mode:
-			//ESP_LOGD("mhi_ac", "Got erropdata_mode %x", value);
+			ESP_LOGD("mhi_ac", "Got erropdata_mode %x", value);
 			{
 				auto mode = modeToClimate(value);
 				if (mode.has_value() && climateCb) {
@@ -217,7 +219,7 @@ public:
 			}
 			break;
 		case status_power:
-			//ESP_LOGD("mhi_ac", "Got status_power %d", value);
+			ESP_LOGD("mhi_ac", "Got status_power %d", value);
 			{
 				if (climateCb) {
 					climateCb->mhi_set_power(value == power_on);
@@ -233,7 +235,7 @@ public:
 			}
 			break;
 		case status_fan:
-			//ESP_LOGD("mhi_ac", "Got status_fan %d", value);
+			ESP_LOGD("mhi_ac", "Got status_fan %d", value);
 			{
 				auto mode = modeToFan(value);
 				if (mode.has_value() && climateCb) {
@@ -243,7 +245,7 @@ public:
 			}
 			break;
 		case status_tsetpoint:
-			//ESP_LOGD("mhi_ac", "Got status_tsetpoint %d", value);
+			ESP_LOGD("mhi_ac", "Got status_tsetpoint %d", value);
 			{
 				float temp = (value & 0x7f) / 2.0;
 				if (climateCb) {
@@ -280,9 +282,18 @@ public:
 			{
 			}
 			break;
+		case opdata_tsetpoint:
+			ESP_LOGD("mhi_ac", "Got opdata_tsetpoint %d", value);
+			{
+				float temp = (value & 0x7f) / 2.0;
+				if (climateCb) {
+					climateCb->mhi_set_target_temperature(temp);
+				}
+			}
+			break;
 		case opdata_outdoor:
 		case erropdata_outdoor:
-			//ESP_LOGD("mhi_ac", "Got opdata_outdoor %d (%d)", value, status);
+			ESP_LOGD("mhi_ac", "Got opdata_outdoor %d (%d)", value, status);
 			{
 				float temp = (value - 94) * 0.25f;
 				if (sensorCb) {
@@ -292,7 +303,7 @@ public:
 			break;
 		case opdata_ct:
 		case erropdata_ct:
-			//ESP_LOGD("mhi_ac", "Got opdata_ct %d (%d)", value, status);
+			ESP_LOGD("mhi_ac", "Got opdata_ct %d (%d)", value, status);
 			{
 				float current = (value * 14.0f) / 51.0f;
 				if (sensorCb) {
@@ -301,7 +312,7 @@ public:
 			}
 			break;
 		case opdata_kwh:
-			//ESP_LOGD("mhi_ac", "Got opdata_kwh %d", value);
+			ESP_LOGD("mhi_ac", "Got opdata_kwh %d", value);
 			{
 				float energy = value * 0.25f;
 				if (sensorCb) {
@@ -325,7 +336,12 @@ public:
 			// TODO: compressor run time sensor, (value * 100), unit ???
 			break;
 		case opdata_protection_no:
-			// TODO: protection state text sensor
+			ESP_LOGD("mhi_ac", "Got opdata_protection_no %d", value);
+			{
+				if (sensorCb) {
+					sensorCb->mhi_set_protection_state(value);
+				}
+			}
 			break;
 		case opdata_comp:
 		case erropdata_comp:
@@ -333,7 +349,7 @@ public:
 			break;
 		case opdata_return_air:
 		case erropdata_return_air:
-			// TODO: return ait temp sensor, (value * 0.25f - 15), unit °C ?
+			// TODO: return air temp sensor, (value * 0.25f - 15), unit °C ?
 			break;
 		case opdata_total_iu_run:
 		case erropdata_total_iu_run:

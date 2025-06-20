@@ -6,6 +6,7 @@ from esphome.const import (
     CONF_CURRENT,
     CONF_ENERGY,
     
+    ENTITY_CATEGORY_DIAGNOSTIC,
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
     UNIT_CELSIUS,
@@ -21,11 +22,13 @@ DEPENDENCIES = ['mhi_ac']
 AUTO_LOAD = ['climate']
 
 CONF_OUTDOOR_TEMPERATURE = "outdoor_temperature"
+CONF_PROTECTION_STATE = "protection_state"
 
 TYPES = [
     CONF_OUTDOOR_TEMPERATURE,
     CONF_CURRENT,
-    CONF_ENERGY
+    CONF_ENERGY,
+    CONF_PROTECTION_STATE
 ]
 
 MhiAcSensor = cg.global_ns.class_("MhiAcSensor", cg.Component)
@@ -52,6 +55,9 @@ CONFIG_SCHEMA = cv.All(
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_ENERGY,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
+            ),
+            cv.Optional(CONF_PROTECTION_STATE): sensor.sensor_schema(
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             ),
         }
     )
