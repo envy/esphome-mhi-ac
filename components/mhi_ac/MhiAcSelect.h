@@ -8,12 +8,18 @@ using namespace esphome;
 using namespace esphome::select;
 
 static const char* TAG = "mhi_ac_select";
+static const char* UNKNOWN = "UNKNOWN";
 
 class MhiAcVerticalVanesSelect : public Component, public Select, public MhiAcVerticalVanesSelectCallback {
 private:
 	MhiAc *mhi_ac = nullptr;
 
 public:
+	void setup() override {
+		const auto &options = this->traits.get_options();
+		publish_state(UNKNOWN);
+	}
+
 	void dump_config() override {
 		LOG_SELECT("", "MhiAcVerticalVanesSelect", this);
 	}
@@ -22,27 +28,29 @@ public:
 		this->mhi_ac = ac;
 	}
 
-	void control(const std::string &value) override {
-		auto options = this->traits.get_options();
-		if (value.compare(options[0]) == 0) {
-			this->mhi_ac->mhi_set_vertical_vanes(vanes_1);
-		} else if (value.compare(options[1]) == 0) {
-			this->mhi_ac->mhi_set_vertical_vanes(vanes_2);
-		} else if (value.compare(options[2]) == 0) {
-			this->mhi_ac->mhi_set_vertical_vanes(vanes_3);
-		} else if (value.compare(options[3]) == 0) {
-			this->mhi_ac->mhi_set_vertical_vanes(vanes_4);
-        } else if (value.compare(options[4]) == 0) {
-            this->mhi_ac->mhi_set_vertical_vanes(vanes_swing);
-        }
+	void control(size_t index) override {
+		switch(index) {
+			case 0:
+				this->mhi_ac->mhi_set_vertical_vanes(vanes_1);
+				break;
+			case 1:
+				this->mhi_ac->mhi_set_vertical_vanes(vanes_2);
+				break;
+			case 2:
+				this->mhi_ac->mhi_set_vertical_vanes(vanes_3);
+				break;
+			case 3:
+				this->mhi_ac->mhi_set_vertical_vanes(vanes_4);
+				break;
+			case 4:
+				this->mhi_ac->mhi_set_vertical_vanes(vanes_swing);
+				break;
+		}
 	}
 
 	void mhi_set_vertical_vanes(ACVanes vanes) override {
-		auto options = this->traits.get_options();
+		const auto &options = this->traits.get_options();
 		switch(vanes) {
-		case vanes_unknown:
-			publish_state("Unknown");
-			break;
 		case vanes_1:
 			publish_state(options[0]);
 			break;
@@ -58,6 +66,9 @@ public:
 		case vanes_swing:
 			publish_state(options[4]);
 			break;
+		default:
+			publish_state(UNKNOWN);
+			break;
 		}
 	}
 };
@@ -67,6 +78,11 @@ private:
 	MhiAc *mhi_ac = nullptr;
 
 public:
+	void setup() override {
+		const auto &options = this->traits.get_options();
+		publish_state(UNKNOWN);
+	}
+
 	void dump_config() override {
 		LOG_SELECT("", "MhiAcHorizontalVanesSelect", this);
 	}
@@ -75,29 +91,37 @@ public:
 		this->mhi_ac = ac;
 	}
 
-	void control(const std::string &value) override {
-		auto options = this->traits.get_options();
-		if (value.compare(options[0]) == 0) {
-			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_1);
-		} else if (value.compare(options[1]) == 0) {
-			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_2);
-		} else if (value.compare(options[2]) == 0) {
-			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_3);
-		} else if (value.compare(options[3]) == 0) {
-			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_4);
-		} else if (value.compare(options[4]) == 0) {
-			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_5);
-		} else if (value.compare(options[5]) == 0) {
-			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_6);
-		} else if (value.compare(options[6]) == 0) {
-			this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_7);
-        } else if (value.compare(options[7]) == 0) {
-            this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_swing);
-        }
+	void control(size_t index) override {
+		switch(index) {
+			case 0:
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_1);
+				break;
+			case 1:
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_2);
+				break;
+			case 2:
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_3);
+				break;
+			case 3:
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_4);
+				break;
+			case 4:
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_5);
+				break;
+			case 5:
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_6);
+				break;
+			case 6:
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_7);
+				break;
+			case 7:
+				this->mhi_ac->mhi_set_horizontal_vanes(vanesLR_swing);
+				break;
+		}
 	}
 
 	void mhi_set_horizontal_vanes(ACVanesLR vanes) override {
-		auto options = this->traits.get_options();
+		const auto &options = this->traits.get_options();
 		switch(vanes) {
 		case vanesLR_1:
 			publish_state(options[0]);
@@ -122,6 +146,9 @@ public:
 			break;
 		case vanesLR_swing:
 			publish_state(options[7]);
+			break;
+		default:
+			publish_state(UNKNOWN);
 			break;
 		}
 	}

@@ -23,15 +23,15 @@ private:
 public:
 	void setup() override {
 		this->mhi_on = false;
-		this->current_temperature = NAN;
-		this->target_temperature = 22.0f;
-		this->mode = CLIMATE_MODE_OFF;
-		this->fan_mode = CLIMATE_FAN_AUTO;
-		this->swing_mode = CLIMATE_SWING_OFF;
-
 		auto restore = this->restore_state_();
 		if (restore.has_value()) {
-			restore->apply(this);
+			restore->to_call(this).perform();
+		} else {
+			this->current_temperature = NAN;
+			this->target_temperature = 22.0f;
+			this->mode = CLIMATE_MODE_OFF;
+			this->fan_mode = CLIMATE_FAN_AUTO;
+			this->swing_mode = CLIMATE_SWING_OFF;
 		}
 	}
 
@@ -125,7 +125,7 @@ public:
 	ClimateTraits traits() override {
 		// The capabilities of the climate device
 		auto traits = ClimateTraits();
-		traits.set_supports_current_temperature(true);
+		traits.add_feature_flags(CLIMATE_SUPPORTS_CURRENT_TEMPERATURE);
 		traits.set_supported_modes({CLIMATE_MODE_OFF, CLIMATE_MODE_COOL, CLIMATE_MODE_HEAT, CLIMATE_MODE_FAN_ONLY, CLIMATE_MODE_DRY});
 		traits.set_supported_fan_modes({CLIMATE_FAN_QUIET, CLIMATE_FAN_LOW, CLIMATE_FAN_MEDIUM, CLIMATE_FAN_HIGH, CLIMATE_FAN_AUTO});
 		traits.set_supported_swing_modes({CLIMATE_SWING_OFF, CLIMATE_SWING_VERTICAL, CLIMATE_SWING_HORIZONTAL, CLIMATE_SWING_BOTH});
